@@ -9,6 +9,7 @@ app.use(express.json())
 
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
+// const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.o1o8917.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.o1o8917.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -25,11 +26,20 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
 
-        const userCollection = client.db("RuposheeBazar").collection("users")
-
+        // collections 
+        const userCollection = client.db("RuposheeBazar").collection("users");
+        const orderCollection = client.db("RuposheeBazar").collection("orders");
+        
+        
+        //  users routes 
         app.get("/users", async (req, res) => {
-            const users = await userCollection.find().toArray()
-            res.send(users)
+            try {
+                const users = await userCollection.find().toArray();
+                res.send(users);
+            } catch (err) {
+                console.error("Failed to fetch users:", err);
+                res.status(500).send("Failed to fetch users");
+            }
         })
 
         app.post("/users", async (req, res) => {
@@ -45,6 +55,12 @@ async function run() {
             res.send(result);
         });
 
+           //  orders routes 
+         app.post("/orders", async(req, res) => {
+            const orderInfo = req.body;
+            const result = await orderCollection.insertOne(orderInfo)
+            res.send(result)
+         })
 
 
         // Send a ping to confirm a successful connection
