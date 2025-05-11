@@ -1,7 +1,8 @@
-require('dotenv').config()
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const app = express()
+const app = express();
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 
 app.use(cors())
@@ -30,6 +31,36 @@ async function run() {
         const userCollection = client.db("RuposheeBazar").collection("users");
         const orderCollection = client.db("RuposheeBazar").collection("orders");
 
+
+        // Verify token 
+        
+    // verify token middleware 
+    const verifyToken = (req, res, next) => {
+      console.log("Inside the verify middleware ", req.headers.authorization);
+
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: 'unauthorized access' })
+      }
+
+      const token = req.headers.authorization.split(" ")[1];
+      console.log("Token is ", token);
+
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (error, decoded) {
+        if (error) {
+          return res.status(401).send({ message: "unauthorized access" })
+        }
+        req.decoded = decoded;
+        next();
+      })
+
+    }
+
+        // jwt related api 
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '12h' })
+            res.send({ token })
+        })
 
         //  users routes 
         app.get("/users", async (req, res) => {
