@@ -33,27 +33,39 @@ async function run() {
 
 
         // Verify token 
-        
-    // verify token middleware 
-    const verifyToken = (req, res, next) => {
-      console.log("Inside the verify middleware ", req.headers.authorization);
 
-      if (!req.headers.authorization) {
-        return res.status(401).send({ message: 'unauthorized access' })
-      }
+        // verify token middleware 
+        const verifyToken = (req, res, next) => {
+            console.log("Inside the verify middleware ", req.headers.authorization);
 
-      const token = req.headers.authorization.split(" ")[1];
-      console.log("Token is ", token);
+            if (!req.headers.authorization) {
+                return res.status(401).send({ message: 'unauthorized access' })
+            }
 
-      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (error, decoded) {
-        if (error) {
-          return res.status(401).send({ message: "unauthorized access" })
+            const token = req.headers.authorization.split(" ")[1];
+            console.log("Token is ", token);
+
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (error, decoded) {
+                if (error) {
+                    return res.status(401).send({ message: "unauthorized access" })
+                }
+                req.decoded = decoded;
+                next();
+            })
+
         }
-        req.decoded = decoded;
-        next();
-      })
 
-    }
+        // Verify admin 
+        // verify admin 
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await userCollection.findOne(query)
+            if (user.role !== 'admin') {
+                return res.status(403).send({ message: "forbidden access" })
+            }
+            next()
+        }
 
         // jwt related api 
         app.post('/jwt', async (req, res) => {
@@ -73,6 +85,38 @@ async function run() {
             }
         })
 
+        // admin 
+        // app.get('/users/admin/:email', verifyToken, async (req, res) => {
+        //     const email = req.params.email;
+        //     if (email !== req.decoded.email) {
+        //         return res.status(403).send({ message: 'forbidden access' })
+        //     }
+        //     const query = { email: email }
+        //     const user = await userCollection.findOne(query)
+
+        //     let isAdmin = false;
+        //     if (user) {
+        //         isAdmin = user?.role === "admin";
+        //     }
+        //     res.send(isAdmin)
+        // })
+   // admin 
+    app.get('/users/admin/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+      const query = { email: email }
+      const user = await userCollection.findOne(query)
+
+      let isAdmin = false;
+      if (user) {
+        isAdmin = user?.role === "Admin";
+      }
+      res.send(isAdmin)
+    })
+
+
         app.post("/users", async (req, res) => {
             const user = req.body;
             const query = { email: user?.email };
@@ -86,9 +130,32 @@ async function run() {
             res.send(result);
         });
 
+        app.patch("/users/:id", async (req, res) => {
+            const id = req.params.id;
+            console.log("user id ", id);
+            const newRole = req.body.updatedRole;
+            console.log(newRole);
+            const filter = { _id: new ObjectId(id) }
+
+            const updatedDoc = {
+                $set: {
+                    role: newRole
+                }
+            }
+
+            const result = await userCollection.updateOne(filter, updatedDoc)
+            res.send(result)
+            console.log(result);
+        })
+
         //  orders routes 
 
-        app.get("/orders/:email", async (req, res) => {
+        app.get("/orders", async (req, res) => {
+            const result = await orderCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.get("/orders/:email", verifyToken, async (req, res) => {
             const email = req.params.email;
             const query = { customerEmail: email }
             const result = await orderCollection.find(query).toArray();
@@ -103,11 +170,13 @@ async function run() {
 
         app.patch("/orders/:id", async (req, res) => {
             const id = req.params.id;
+            const newStatus = req.body.updatedStatus;
+            console.log(newStatus);
             const filter = { _id: new ObjectId(id) }
 
             const updatedDoc = {
                 $set: {
-                    status: "Canceled"
+                    status: newStatus
                 }
             }
 
