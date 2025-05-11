@@ -8,7 +8,7 @@ app.use(cors())
 app.use(express.json())
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 // const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.o1o8917.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.o1o8917.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -29,8 +29,8 @@ async function run() {
         // collections 
         const userCollection = client.db("RuposheeBazar").collection("users");
         const orderCollection = client.db("RuposheeBazar").collection("orders");
-        
-        
+
+
         //  users routes 
         app.get("/users", async (req, res) => {
             try {
@@ -55,21 +55,34 @@ async function run() {
             res.send(result);
         });
 
-           //  orders routes 
+        //  orders routes 
 
-           app.get("/orders/:email", async(req, res)=> {
+        app.get("/orders/:email", async (req, res) => {
             const email = req.params.email;
-            const query = {customerEmail: email}
+            const query = { customerEmail: email }
             const result = await orderCollection.find(query).toArray();
             res.send(result)
-           })
+        })
 
-         app.post("/orders", async(req, res) => {
+        app.post("/orders", async (req, res) => {
             const orderInfo = req.body;
             const result = await orderCollection.insertOne(orderInfo)
             res.send(result)
-         })
+        })
 
+        app.patch("/orders/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+
+            const updatedDoc = {
+                $set: {
+                    status: "Canceled"
+                }
+            }
+
+            const result = await orderCollection.updateOne(filter, updatedDoc)
+            res.send(result)
+        })
 
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
