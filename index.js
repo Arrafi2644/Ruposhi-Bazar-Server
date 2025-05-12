@@ -31,6 +31,7 @@ async function run() {
         const userCollection = client.db("RuposheeBazar").collection("users");
         const orderCollection = client.db("RuposheeBazar").collection("orders");
         const productsCollection = client.db("RuposheeBazar").collection("products");
+        const categoriesCollection = client.db("RuposheeBazar").collection("categories");
 
 
         // Verify token 
@@ -61,7 +62,7 @@ async function run() {
             const email = req.decoded.email;
             const query = { email: email }
             const user = await userCollection.findOne(query)
-           
+
             if (user.role !== 'Admin') {
                 return res.status(403).send({ message: "forbidden access" });
             }
@@ -138,7 +139,7 @@ async function run() {
 
         //  orders routes 
 
-        app.get("/orders/admin/:email", verifyToken, verifyAdmin,  async (req, res) => {
+        app.get("/orders/admin/:email", verifyToken, verifyAdmin, async (req, res) => {
             const email = req.params.email;
             const result = await orderCollection.find().toArray()
             res.send(result)
@@ -174,16 +175,85 @@ async function run() {
         })
 
         // products 
-        app.get("/products", async(req, res) => {
-            const result = await productsCollection.find().toArray();
+        app.get("/products", async (req, res) => {
+            const category = req?.query?.category || ""
+            console.log(category);
+            let query = {};
+            if(category){
+        if (category) {
+          query.category = {
+            $regex: category,
+            $options: "i"
+          };
+        }
+      }
+            const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
 
-        app.post("/products", async(req, res)=> {
+        app.post("/products", async (req, res) => {
             const product = req.body;
             console.log(product);
 
             const result = await productsCollection.insertOne(product)
+            res.send(result)
+        })
+
+        app.put("/products/:id", async (req, res) => {
+            const id = req.params.id;
+            const updatedProduct = req.body;
+            const query = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: updatedProduct
+            }
+            const result = await productsCollection.updateOne(
+                query, updatedDoc
+            );
+            res.send(result);
+        })
+
+          app.patch("/products/:id", async (req, res) => {
+            const id = req.params.id;
+            const newStatus = req.body.updatedStockStatus;
+            console.log(newStatus);
+            const filter = { _id: new ObjectId(id) }
+
+            const updatedDoc = {
+                $set: {
+                    isStock: newStatus
+                }
+            }
+
+            const result = await productsCollection.updateOne(filter, updatedDoc)
+            res.send(result)
+            // console.log(result);
+        })
+
+
+        // categories
+        app.get("/categories", async(req, res) => {
+           const result = await categoriesCollection.find().toArray()
+           res.send(result);
+        })
+
+        app.post("/categories", async(req, res) => {
+            const category = req.body;
+            console.log(category);
+            const result = await categoriesCollection.insertOne(category)
+            res.send(result)
+        })
+
+           app.put("/categories/:id", async(req, res) => {
+            const id = req.params.id;
+            const updatedCategory = req.body;
+            const query = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: updatedCategory
+            }
+            const result = await categoriesCollection.updateOne(
+                query, updatedDoc
+            );
+
             res.send(result)
         })
 
