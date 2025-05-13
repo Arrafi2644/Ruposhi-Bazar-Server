@@ -177,19 +177,32 @@ async function run() {
         // products 
         app.get("/products", async (req, res) => {
             const category = req?.query?.category || ""
-            console.log(category);
+            console.log("query ", req?.query);
             let query = {};
-            if(category){
-        if (category) {
-          query.category = {
-            $regex: category,
-            $options: "i"
-          };
-        }
-      }
+            //   if (category) {
+            //         query.$or = [
+            //             { category: { $regex: category, $options: "i" } },
+            //             { title: { $regex: category, $options: "i" } },
+            //             { brand: { $regex: category, $options: "i" } },
+            //             { productName: { $regex: category, $options: "i" } }
+            //         ];
+            //     }
+
+            if (category) {
+                query.$or = [
+                    { category: { $regex: category, $options: "i" } },
+                    { title: { $regex: category, $options: "i" } },
+                    { brand: { $regex: category, $options: "i" } },
+                    { productName: { $regex: category, $options: "i" } },
+                    { model: { $regex: category, $options: "i" } }
+                ];
+            }
+
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
+
+        //  { category: { $regex: category, $options: "i" } },
 
         app.post("/products", async (req, res) => {
             const product = req.body;
@@ -212,7 +225,7 @@ async function run() {
             res.send(result);
         })
 
-          app.patch("/products/:id", async (req, res) => {
+        app.patch("/products/:id", async (req, res) => {
             const id = req.params.id;
             const newStatus = req.body.updatedStockStatus;
             console.log(newStatus);
@@ -231,19 +244,19 @@ async function run() {
 
 
         // categories
-        app.get("/categories", async(req, res) => {
-           const result = await categoriesCollection.find().toArray()
-           res.send(result);
+        app.get("/categories", async (req, res) => {
+            const result = await categoriesCollection.find().toArray()
+            res.send(result);
         })
 
-        app.post("/categories", async(req, res) => {
+        app.post("/categories", async (req, res) => {
             const category = req.body;
             console.log(category);
             const result = await categoriesCollection.insertOne(category)
             res.send(result)
         })
 
-           app.put("/categories/:id", async(req, res) => {
+        app.put("/categories/:id", async (req, res) => {
             const id = req.params.id;
             const updatedCategory = req.body;
             const query = { _id: new ObjectId(id) }
