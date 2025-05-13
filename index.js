@@ -242,6 +242,13 @@ async function run() {
             // console.log(result);
         })
 
+        app.delete("/products/:id", async(req, res)=>{
+            const id = req.params.id;
+            const query = {_id : new ObjectId(id)}
+            const result = await productsCollection.deleteOne(query)
+            res.send(result)
+        })
+
 
         // categories
         app.get("/categories", async (req, res) => {
@@ -267,6 +274,13 @@ async function run() {
                 query, updatedDoc
             );
 
+            res.send(result)
+        })
+
+           app.delete("/categories/:id", async(req, res)=>{
+            const id = req.params.id;
+            const query = {_id : new ObjectId(id)}
+            const result = await categoriesCollection.deleteOne(query)
             res.send(result)
         })
 
