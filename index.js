@@ -11,8 +11,8 @@ app.use(express.json())
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 // const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.o1o8917.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-// const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.o1o8917.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-const uri = `mongodb+srv://ruposheBazarAdmin:${process.env.USER_PASS}@cluster0.pqimmqu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.o1o8917.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri = `mongodb+srv://ruposheBazarAdmin:${process.env.USER_PASS}@cluster0.pqimmqu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -153,13 +153,13 @@ async function run() {
             res.send(result)
         })
 
-        app.post("/orders", async (req, res) => {
+        app.post("/orders",verifyToken, async (req, res) => {
             const orderInfo = req.body;
             const result = await orderCollection.insertOne(orderInfo)
             res.send(result)
         })
 
-        app.patch("/orders/:id", async (req, res) => {
+        app.patch("/orders/:id", verifyToken, async (req, res) => {
             const id = req.params.id;
             const newStatus = req.body.updatedStatus;
             console.log(newStatus);
@@ -205,7 +205,7 @@ async function run() {
 
         //  { category: { $regex: category, $options: "i" } },
 
-        app.post("/products", async (req, res) => {
+        app.post("/products", verifyToken, verifyAdmin, async (req, res) => {
             const product = req.body;
             console.log(product);
 
@@ -213,7 +213,7 @@ async function run() {
             res.send(result)
         })
 
-        app.put("/products/:id", async (req, res) => {
+        app.put("/products/:id", verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const updatedProduct = req.body;
             const query = { _id: new ObjectId(id) }
@@ -226,7 +226,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch("/products/:id", async (req, res) => {
+        app.patch("/products/:id", verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const newStatus = req.body.updatedStockStatus;
             console.log(newStatus);
@@ -243,7 +243,7 @@ async function run() {
             // console.log(result);
         })
 
-        app.delete("/products/:id", async(req, res)=>{
+        app.delete("/products/:id", verifyToken, verifyAdmin, async(req, res)=>{
             const id = req.params.id;
             const query = {_id : new ObjectId(id)}
             const result = await productsCollection.deleteOne(query)
@@ -257,14 +257,14 @@ async function run() {
             res.send(result);
         })
 
-        app.post("/categories", async (req, res) => {
+        app.post("/categories", verifyToken, verifyAdmin , async (req, res) => {
             const category = req.body;
             console.log(category);
             const result = await categoriesCollection.insertOne(category)
             res.send(result)
         })
 
-        app.put("/categories/:id", async (req, res) => {
+        app.put("/categories/:id", verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const updatedCategory = req.body;
             const query = { _id: new ObjectId(id) }
@@ -278,7 +278,7 @@ async function run() {
             res.send(result)
         })
 
-           app.delete("/categories/:id", async(req, res)=>{
+           app.delete("/categories/:id", verifyToken, verifyAdmin, async(req, res)=>{
             const id = req.params.id;
             const query = {_id : new ObjectId(id)}
             const result = await categoriesCollection.deleteOne(query)
