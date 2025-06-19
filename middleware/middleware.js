@@ -33,4 +33,4 @@ const verifyAdmin = async (req, res, next) => {
     next()
 }
 
-module.exports = {verifyToken, verifyAdmin}
+module.exports = { verifyToken, verifyAdmin }
