@@ -33,7 +33,7 @@ async function run() {
         const orderCollection = client.db("RuposheeBazar").collection("orders");
         const productsCollection = client.db("RuposheeBazar").collection("products");
         const categoriesCollection = client.db("RuposheeBazar").collection("categories");
-
+        const cartsCollection = client.db("RuposheeBazar").collection("carts");
 
         // Verify token 
 
@@ -153,7 +153,7 @@ async function run() {
             res.send(result)
         })
 
-        app.post("/orders",verifyToken, async (req, res) => {
+        app.post("/orders", verifyToken, async (req, res) => {
             const orderInfo = req.body;
             const result = await orderCollection.insertOne(orderInfo)
             res.send(result)
@@ -243,9 +243,9 @@ async function run() {
             // console.log(result);
         })
 
-        app.delete("/products/:id", verifyToken, verifyAdmin, async(req, res)=>{
+        app.delete("/products/:id", verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
-            const query = {_id : new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await productsCollection.deleteOne(query)
             res.send(result)
         })
@@ -257,7 +257,7 @@ async function run() {
             res.send(result);
         })
 
-        app.post("/categories", verifyToken, verifyAdmin , async (req, res) => {
+        app.post("/categories", verifyToken, verifyAdmin, async (req, res) => {
             const category = req.body;
             console.log(category);
             const result = await categoriesCollection.insertOne(category)
@@ -278,11 +278,26 @@ async function run() {
             res.send(result)
         })
 
-           app.delete("/categories/:id", verifyToken, verifyAdmin, async(req, res)=>{
+        app.delete("/categories/:id", verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
-            const query = {_id : new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await categoriesCollection.deleteOne(query)
             res.send(result)
+        })
+
+        app.get("/carts/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { userEmail: email };
+            const result = await cartsCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        app.post("/carts", async (req, res) => {
+            const product = req.body;
+
+            const result = await cartsCollection.insertOne(product)
+            res.send(result)
+
         })
 
         // Send a ping to confirm a successful connection
