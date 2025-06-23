@@ -300,12 +300,12 @@ async function run() {
 
         })
 
-        app.patch('/carts/:id', async(req, res) => {
+        app.patch('/carts/:id', async (req, res) => {
             const id = req.params.id;
-            const {newQuantity} = req.body;
+            const { newQuantity } = req.body;
             console.log("ccc", newQuantity);
 
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
 
             const updatedDoc = {
                 $set: {
@@ -317,13 +317,31 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/carts/:id', async(req, res) => {
+        app.delete('/carts/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
 
             const result = await cartsCollection.deleteOne(query)
             res.send(result)
         })
+
+
+        app.delete("/carts", async (req, res) => {
+            const cartItems = req.body;
+
+            if (!Array.isArray(cartItems)) {
+                return res.status(400).json({ error: "Expected an array of cart items" });
+            }
+
+            const idsToDelete = cartItems.map(item => new ObjectId(item._id));
+
+            const result = await cartsCollection.deleteMany({
+                _id: { $in: idsToDelete }
+            });
+
+            res.send(result);
+        });
+
 
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
