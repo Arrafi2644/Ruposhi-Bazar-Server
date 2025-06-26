@@ -3,6 +3,7 @@ import { verifyToken } from "../middleware/verifyToken.js";
 import { verifyAdmin } from "../middleware/verifyAdmin.js";
 import { ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
+import { userCollection } from "../config/collections.js";
 
 const userRoutes = express.Router()
 
@@ -13,7 +14,7 @@ userRoutes.post('/jwt', async (req, res) => {
     res.send({ token })
 })
 
-userRoutes.get("/:email", verifyToken, verifyAdmin, async (req, res) => {
+userRoutes.get("/:email", verifyToken, async (req, res) => {
     try {
         const users = await userCollection.find().toArray();
         res.send(users);
@@ -24,7 +25,7 @@ userRoutes.get("/:email", verifyToken, verifyAdmin, async (req, res) => {
 })
 
 // admin check 
-userRoutes.get('/admin/:email', verifyToken, async (req, res) => {
+userRoutes.get('/admin/:email', verifyToken, verifyAdmin, async (req, res) => {
     const email = req.params.email;
     if (email !== req.decoded.email) {
         return res.status(403).send({ message: 'forbidden access' })
