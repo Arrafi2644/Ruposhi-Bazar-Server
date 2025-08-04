@@ -11,6 +11,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5000',
+  'https://ruposheebazar-df13d.web.app',
   'https://ruposhee-bazar-server-rust.vercel.app',
 ];
 
